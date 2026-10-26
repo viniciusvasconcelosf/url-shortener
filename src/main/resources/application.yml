@@ -1,0 +1,60 @@
+server:
+  port: 8080
+  # For high concurrency student experiment
+  tomcat:
+    threads:
+      max: 400
+      min-spare: 50
+
+spring:
+  application:
+    name: url-shortener
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/urlshortener
+    username: shortener
+    password: shortener123
+    hikari:
+      maximum-pool-size: 50          # important for 5k RPS
+      minimum-idle: 10
+      connection-timeout: 3000
+
+  jpa:
+    hibernate:
+      ddl-auto: update               # student mode: let Hibernate create tables
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+# Custom app settings
+app:
+  short-code-length: 7               # Base62 → ~3.5e12 possible codes
+  base-url: http://localhost:8080/
+  rate-limit:
+    requests-per-minute: 60          # per IP for /shorten
+    window-seconds: 60
+  cache:
+    ttl-seconds: 3600                # 1 hour cache for redirects
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.student.urlshortener: INFO
+    org.springframework.web: WARN
